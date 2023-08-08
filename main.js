@@ -1,55 +1,118 @@
 "use strict";
 
-// Elements (unchanged)
-const calculator = document.querySelector(".calculator");
-const toggleBtn = document.querySelector(".toggle_btn");
-const toggleIcon = document.querySelector(".toggle_icon");
-const numbers = document.querySelectorAll(".number");
-const buttons = document.querySelectorAll("button");
-const display = document.querySelector(".display");
-const deleteAllBtn = document.querySelector(".all_clear");
-const deleteBtn = document.querySelector(".clear_last");
-const operatorsAll = document.querySelectorAll(".operator");
-const equal = document.querySelector(".equal");
+class Calculator {
+  constructor(operandEl) {
+    this.operandEl = operandEl;
+    this.clear();
+  }
 
-//Toggle button to select the theme (unchanged)
-toggleBtn.addEventListener("click", () => {
-  calculator.classList.toggle("dark_mode");
-  toggleIcon.classList.toggle("white");
-  displayEl.classList.toggle("dark");
-});
+  clear() {
+    this.currentOperand = "";
+    this.previousOperand = "";
+    this.operation = undefined;
+  }
 
-let calculations = [];
-let acc;
+  delete() {
+    this.currentOperand = this.currentOperand.toString().slice(0, -1);
+  }
 
-//Function to calculate based on button clicked
-function calculate(button) {
-  const isIcon = button.querySelector("i");
-  const value = isIcon ? button.dataset.value : button.textContent;
-  //if C is clicked clear the display
-  if (value === "C") {
-    calculations = [];
-    display.textContent = "";
-    // if del is clicked delete the last entry
-  } else if (value === "DEL") {
-    calculations.pop();
-    acc = calculations.join("");
-    display.textContent = acc;
-    // if = is clicked evaluates the expression
-  } else if (value === "=") {
-    display.textContent = eval(acc);
+  appendNumber(number) {
+    if (number === "." && this.currentOperand.includes(".")) return;
+    this.currentOperand += number.toString();
+  }
 
-    //else push the values in arr and show in display
-  } else {
-    calculations.push(value);
-    acc = calculations.join("");
-    display.textContent = acc;
+  chooseOperation(operation) {
+    if (this.currentOperand === "") return;
+    if (this.previousOperand !== "") {
+      this.compute();
+    }
+    this.operation = operation;
+    this.previousOperand = this.currentOperand;
+    this.currentOperand = "";
+  }
+
+  compute() {
+    let computation;
+    const prev = parseFloat(this.previousOperand);
+    const curr = parseFloat(this.currentOperand);
+    if (isNaN(prev) || isNaN(curr)) return;
+    switch (this.operation) {
+      case "+":
+        computation = prev + curr;
+        break;
+      case "-":
+        computation = prev - curr;
+        break;
+      case "*":
+        computation = prev * curr;
+        break;
+      case "/":
+        computation = prev / curr;
+        break;
+      default:
+        return;
+    }
+    this.currentOperand = computation.toString();
+    this.operation = undefined;
+    this.previousOperand = "";
+  }
+
+  updateDisplay() {
+    if (this.operation !== undefined) {
+      this.operandEl.innerText = `${this.previousOperand} ${this.operation}`;
+    } else {
+      this.operandEl.innerText = this.previousOperand;
+    }
+
+    if (this.currentOperand !== "" && this.operation !== undefined) {
+      this.operandEl.innerText += " " + this.currentOperand;
+    } else if (this.currentOperand !== "") {
+      this.operandEl.innerText = this.currentOperand;
+    }
   }
 }
+const calculatorEl = document.querySelector(".calculator");
 
-//Button click listener calls calculate() with dataset value as argument
-buttons.forEach((button) =>
-  button.addEventListener("click", (e) => {
-    calculate(button);
-  })
-);
+const toggleBtn = document.querySelector(".toggle_btn");
+const toggleIcon = document.querySelector(".toggle_icon");
+const operandEl = document.querySelector(".operand");
+const numbers = document.querySelectorAll(".number");
+const operatorsAll = document.querySelectorAll(".operator");
+const equal = document.querySelector(".equal");
+const clear = document.querySelector(".all_clear");
+const clearLast = document.querySelector(".clear_last");
+
+const calculator = new Calculator(operandEl);
+numbers.forEach((number) => {
+  number.addEventListener("click", () => {
+    calculator.appendNumber(number.innerText);
+    calculator.updateDisplay();
+  });
+});
+
+operatorsAll.forEach((operator) => {
+  operator.addEventListener("click", () => {
+    calculator.chooseOperation(operator.innerText);
+    calculator.updateDisplay();
+  });
+});
+
+equal.addEventListener("click", () => {
+  calculator.compute();
+  calculator.updateDisplay();
+});
+
+toggleBtn.addEventListener("click", () => {
+  calculatorEl.classList.toggle("dark_mode");
+  toggleIcon.classList.toggle("white");
+});
+
+clear.addEventListener("click", () => {
+  calculator.clear();
+  calculator.updateDisplay();
+});
+
+clearLast.addEventListener("click", () => {
+  calculator.delete();
+  calculator.updateDisplay();
+});
