@@ -58,13 +58,17 @@ class Calculator {
   }
 
   updateDisplay() {
-    if (this.operation !== undefined) {
+    if (this.operation !== undefined && this.operation !== "=") {
       this.operandEl.innerText = `${this.previousOperand} ${this.operation}`;
     } else {
       this.operandEl.innerText = this.previousOperand;
     }
 
-    if (this.currentOperand !== "" && this.operation !== undefined) {
+    if (
+      this.currentOperand !== "" &&
+      this.operation !== undefined &&
+      this.operation !== "="
+    ) {
       this.operandEl.innerText += " " + this.currentOperand;
     } else if (this.currentOperand !== "") {
       this.operandEl.innerText = this.currentOperand;
